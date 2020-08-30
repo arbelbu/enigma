@@ -15,10 +15,23 @@ rotor_VI =  'esovpzjayquirhxlnftgkdcmwb'
 rotor_V =   'vzbrgityupsdnhlxawmjqofeck'
 #arrangement_rotors=[rotor_III, rotor_VI, rotor_V]
 rotors_names={1:rotor_I, 2:rotor_II, 3:rotor_III, 4:rotor_VI, 5:rotor_V}
-arrangement_rotors=input("enter rotors:\n")
-arrangement_rotors=[rotors_names[int(arrangement_rotors[0])],
-                    rotors_names[int(arrangement_rotors[1])],
-                    rotors_names[int(arrangement_rotors[2])]]
+input_arrangement_rotors=input("enter rotors:\n")
+arrangement_rotors=[rotors_names[int(input_arrangement_rotors[0])],
+                    rotors_names[int(input_arrangement_rotors[1])],
+                    rotors_names[int(input_arrangement_rotors[2])]]
+
+
+initial_rotor_settings=input('enter Initial rotor settings(EG. rew/ghk):\n')
+def setting_rotors(n,arrangement_rotors,initial_rotor_settings):  #  n- number rotor inarrangement rotors, not in rotors names
+    setting_rotor = arrangement_rotors[n].find(initial_rotor_settings[n])
+    setting_rotor = arrangement_rotors[n][setting_rotor:] + arrangement_rotors[n][:setting_rotor]
+    arrangement_rotors[n] = setting_rotor
+for rotor_number in [0,1,2]:
+    setting_rotors(rotor_number)
+
+
+
+
 
 plugboard_settings=input("enter plugboard settings(EG. ab,cd,ef):\n")
 
@@ -26,7 +39,7 @@ sentence_to_secrete = input("enter sentence:\n")
 sentence_to_secrete=sentence_to_secrete.replace(" ",'')
 
 def get_letter(rotor,letter):
-    encoded_character=rotor[(ord(letter))-97]
+    encoded_character = rotor[(ord(letter))-97]
     return encoded_character
 
 def rotate(rotor):
