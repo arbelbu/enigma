@@ -1,97 +1,73 @@
-import urllib
-from urllib.request import urlopen
-from bs4 import BeautifulSoup, element
-from tkinter import *
-from tkinter.ttk import *
-from tkinter.constants import *
-import time
-import random
-import re
-from tkinter import messagebox
+from graphviz import Digraph, Graph
+import webbrowser
+dot = Graph(format='svg')
+dot.attr(ranksep="1.6")#, , ranksep="20")  pad="24.5"nodesep="10"
+names_of_characters = open(r'c:\Users\burstain\.PyCharmCE2018.1\config\scratches\names_of_characters.txt', 'r')
+kinship_of_characters = r'c:\Users\burstain\.PyCharmCE2018.1\config\scratches\kinship_of_characters.txt'
 
-master = Tk()
-window = Canvas(master, width=200, height=100)
-master.title('Wikipedia quiz')
+list_of_names = names_of_characters.read().split("\n")
 
-class titel_and_content:
-    def __init__(self):
-        self.linken = "https://en.wikipedia.org/wiki/Special:Random"
-        self.linkhe = "https://he.wikipedia.org/wiki/%D7%9E%D7%99%D7%95%D7%97%D7%93:%D7%90%D7%A7%D7%A8%D7%90%D7%99"
-        self.html = urllib.request.urlopen(self.linkhe)
-        self.webfile = self.html.read().decode('utf-8')
-        self.soup = BeautifulSoup(self.webfile , features="html.parser")
-        self.soup.find_all("p")
+def get_diagram_husband_and_wife(husband, wife, source):
+    with dot.subgraph() as s:
+    #s = Graph(format='svg')
+    #s=dot
+        point_name = str(husband) + "+" + str(wife)
+        s.attr(rank='same')
+        s.node(str(husband), list_of_names[husband], fillcolor="beige", style="filled", shape="rectangle")
+        s.node(str(wife), list_of_names[wife],  fillcolor="beige", style="filled", shape="rectangle")
+        s.node(point_name, shape = 'point')
+        s.edge(str(husband),point_name, tooltip=source, fontname="Arial", fontcolor="blue", fontsize="10", color = "green")
+        s.edge(point_name, str(wife), tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10" ,color="green")
 
-    def titel(self):
-        return (self.webfile[self.webfile.index('<title>') + 7: self.webfile.index('</title>')].replace(" – ויקיפדיה" , ""))
-
-    def content(self):
-        l = []
-        for p in self.soup.find_all("p"):
-            for a in p.contents:
-                if isinstance(a , element.Tag):
-                    a = a.next
-                if isinstance(a , element.NavigableString):
-                    l.append(str(a))
-        return "".join(l)
-
-def options():
-    answers = [titel_and_content() for answer in range(0,4)]
-    right_answer = random.choice(answers)
-    titel_of_right_answer = right_answer.titel()
-    content_of_right_answer = right_answer.content()
-    return [[str(answer.titel()) for answer in answers], [titel_of_right_answer, content_of_right_answer]]
-
-def press_play(textbutton, right_answer, button_pressd):
-    global t0
-    if button_pressd[0] == True:
-        return
-    t1 =time.time()
-    delta = t1-t0
-    button_pressd[0] = True
-    if textbutton == right_answer:
-        messagebox.showinfo("showinfo" , "True!\nscore:"+str(300-delta//0.1))
+def get_diagram_father_and_son(parentes, son, source):
+    # parentes is string (E.g. "3" or "3+4")
+    # son is always int
+    # source is str (of course...)
+    d = dot#Graph(format='svg')
+    #d.attr(rank='max')
+    d.rankdir = "TB"
+    if "+" in parentes:
+        t = parentes.split("+")
+        father = int(t[0])
+        mother = int(t[1])
+        d.node(str(father) , list_of_names[father] , tooltip=source , fillcolor="beige" , style="filled" , shape="rectangle")
+        d.node(str(mother) , list_of_names[mother] , tooltip=source , fillcolor="beige" , style="filled" , shape="rectangle")
+        d.node(parentes , shape='point')
     else:
-        messagebox.showinfo("showinfo" , "False!\nscore:0\nthe right answer:"+right_answer)
+        father = int(parentes)
+        d.node(str(father), list_of_names[father],tooltip=source, fillcolor="beige", style="filled", shape="rectangle")
+        parentes = str(father)
+    d.node(str(son) , list_of_names[son] , fillcolor="beige" , style="filled" , shape="rectangle")
+    d.edge(parentes , str(son) , tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10" , penwidth="2" , color="red")
+    #dot.subgraph(d)
 
-t0 = time.time()
-button_pressd = [False]
-def play(answers, right_answer, button_pressd):
-    b = []
-    for textbutton in answers:
-        b.append(Button(window , text = str(textbutton) ,command = lambda textbutton=textbutton: press_play(textbutton, right_answer, button_pressd)))
-        b[-1].grid(row = answers.index(textbutton)+1 , column = 1)
-    label = Label(window , text="*", justify = RIGHT)
-    label.grid(row=6, column=1)
-    photo = PhotoImage(file=r"C:\Users\burstain\Documents\wikipedia_logo.png")
-    image = Label(window , image=photo)
-    image.image = photo
-    t0 = time.time()
-    image.grid(row=0, column=0)
-    return label
 
-def get_clues(content, right_answer, master, label):
-    for word in right_answer.split(" "):
-        content = content.replace(word, "---")
-        content = content.replace("\n" , "")
-        content = re.sub(r" ?\([^)]+\)" , "" , content)
-        content = content.split()
-        for num in range(len(content)//15):
-            content[num*15] = content[num*15]+"\n"
-        content = " ".join(content)
-    stop = min(150, len(content))
-    for num in range(stop):
-        master.after(num*100 , boom , label, content[0:num])
-
-def boom(label, clue):
-    label['text'] = clue
-
-def main(master):
-    a = options()
-    label = play(a[0] , a[1][0], button_pressd)
-    get_clues(a[1][1] , a[1][0], master, label)
-
-main(master)
-
-window.pack()
-mainloop()
+list_of_hasbends_and_wifes = []
+list_of_fathers_and_sons = []
+def main():
+    with open(kinship_of_characters, 'r', encoding="utf-8") as fid:
+        lines =  fid.readlines()
+    for num, source in zip(lines[::2], lines[1::2]):
+        kinship_number = num.replace("\n", "")
+        if '#' in kinship_number:
+            continue
+        source = source.replace("\n", "")
+        if ',' in kinship_number:
+            kinship_number = kinship_number.split(',')
+            list_of_fathers_and_sons.append((kinship_number[0], int(kinship_number[1]), source))
+            get_diagram_father_and_son(kinship_number[0] , int(kinship_number[1]) , source)
+        elif '+' in kinship_number:
+            husband_and_wife = list(map(int ,kinship_number.split('+')))
+            list_of_hasbends_and_wifes.append((husband_and_wife[0], husband_and_wife[1], source))
+            get_diagram_husband_and_wife(husband_and_wife[0], husband_and_wife[1], source)
+    #for parents in list_of_hasbends_and_wifes:
+        #parents is tuple of (num_hasbend, num_wife, sorce)
+        #get_diagram_husband_and_wife(parents[0] , parents[1] ,parents[2])
+    #for father, son, source in list_of_fathers_and_sons:
+        #num_father/or string E.g. 0+1, num_son, sorce
+        #get_diagram_father_and_son(father, son, source, "s")
+main()
+print(dot.source)
+dot.render(r"c:\Users\burstain\.PyCharmCE2018.1\config\scratches\dorot")
+chrome_path = 'C:/Users/burstain/AppData/Local/Google/Chrome/Application/chrome.exe --profile-directory="Profile 1" %s'
+webbrowser.get(chrome_path).open(r'c:\Users\burstain\.PyCharmCE2018.1\config\scratches\dorot.svg')
