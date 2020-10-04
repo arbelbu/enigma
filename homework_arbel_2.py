@@ -8,14 +8,16 @@ kinship_of_characters = r'c:\Users\burstain\.PyCharmCE2018.1\config\scratches\ki
 list_of_names = names_of_characters.read().split("\n")
 
 def get_diagram_husband_and_wife(husband, wife, source):
+    husband_ = str(husband)+"_"
+    wife_ = str(wife)+"_"
     with dot.subgraph() as s:
-    #s = Graph(format='svg')
-    #s=dot
-        point_name = str(husband) + "+" + str(wife)
         s.attr(rank='same')
+        point_name = str(husband) + "+" + str(wife)
+        s.node(point_name, shape = 'point')
+    with dot.subgraph() as s:
+        s.rankdir = "TB"
         s.node(str(husband), list_of_names[husband], fillcolor="beige", style="filled", shape="rectangle")
         s.node(str(wife), list_of_names[wife],  fillcolor="beige", style="filled", shape="rectangle")
-        s.node(point_name, shape = 'point')
         s.edge(str(husband),point_name, tooltip=source, fontname="Arial", fontcolor="blue", fontsize="10", color = "green")
         s.edge(point_name, str(wife), tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10" ,color="green")
 
@@ -23,8 +25,7 @@ def get_diagram_father_and_son(parentes, son, source):
     # parentes is string (E.g. "3" or "3+4")
     # son is always int
     # source is str (of course...)
-    d = dot#Graph(format='svg')
-    #d.attr(rank='max')
+    d = dot
     d.rankdir = "TB"
     if "+" in parentes:
         t = parentes.split("+")
