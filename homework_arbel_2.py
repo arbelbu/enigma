@@ -1,11 +1,29 @@
 from graphviz import Digraph, Graph
 import webbrowser
+import os
 dot = Graph(format='svg')
 dot.attr(ranksep="1.6")#, , ranksep="20")  pad="24.5"nodesep="10"
-names_of_characters = open(r'c:\Users\burstain\.PyCharmCE2018.1\config\scratches\names_of_characters.txt', 'r')
-kinship_of_characters = r'c:\Users\burstain\.PyCharmCE2018.1\config\scratches\kinship_of_characters.txt'
+names_of_characters = open(r'names_of_characters.txt', 'r', encoding="utf-8")
+kinship_of_characters = r'kinship_of_characters.txt'
 
 list_of_names = names_of_characters.read().split("\n")
+
+def add_person(graph, number):
+    name, tooltip = get_tooltip(number)
+    graph.node(str(number), name, tooltip=tooltip, fillcolor="beige", style="filled", shape="rectangle" )
+
+def chrome_hebrew(name):
+    if "(" in name:
+        #import pdb;pdb.set_trace()
+        return name + u'\u200F'
+    return name
+
+def get_tooltip(number):
+    name = list_of_names[number]
+    open_, close_ = name.find("["), name.find("]")
+    if open_==-1 or close_==-1:
+        return chrome_hebrew(name), str(number)
+    return chrome_hebrew(name[:open_]), name[open_+1:close_]
 
 def get_diagram_husband_and_wife(husband, wife, source):
     husband_ = str(husband)+"_"
@@ -16,10 +34,10 @@ def get_diagram_husband_and_wife(husband, wife, source):
         s.node(point_name, shape = 'point')
     with dot.subgraph() as s:
         s.rankdir = "TB"
-        s.node(str(husband), list_of_names[husband], fillcolor="beige", style="filled", shape="rectangle")
-        s.node(str(wife), list_of_names[wife],  fillcolor="beige", style="filled", shape="rectangle")
-        s.edge(str(husband),point_name, tooltip=source, fontname="Arial", fontcolor="blue", fontsize="10", color = "green")
-        s.edge(point_name, str(wife), tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10" ,color="green")
+        add_person(s, husband)
+        add_person(s, wife)
+        s.edge(str(husband),point_name, tooltip=source, fontname="Arial", fontcolor="blue", fontsize="10" , penwidth="2" , color = "green")
+        s.edge(point_name, str(wife), tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10"  , penwidth="2" ,color="green")
 
 def get_diagram_father_and_son(parentes, son, source):
     # parentes is string (E.g. "3" or "3+4")
@@ -31,14 +49,15 @@ def get_diagram_father_and_son(parentes, son, source):
         t = parentes.split("+")
         father = int(t[0])
         mother = int(t[1])
-        d.node(str(father) , list_of_names[father] , tooltip=source , fillcolor="beige" , style="filled" , shape="rectangle")
-        d.node(str(mother) , list_of_names[mother] , tooltip=source , fillcolor="beige" , style="filled" , shape="rectangle")
+        add_person(d, father)
+        add_person(d, mother)
         d.node(parentes , shape='point')
     else:
         father = int(parentes)
-        d.node(str(father), list_of_names[father],tooltip=source, fillcolor="beige", style="filled", shape="rectangle")
+        add_person(d, father)
+
         parentes = str(father)
-    d.node(str(son) , list_of_names[son] , fillcolor="beige" , style="filled" , shape="rectangle")
+    add_person(d, son)
     d.edge(parentes , str(son) , tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10" , penwidth="2" , color="red")
     #dot.subgraph(d)
 
@@ -69,6 +88,8 @@ def main():
         #get_diagram_father_and_son(father, son, source, "s")
 main()
 print(dot.source)
-dot.render(r"c:\Users\burstain\.PyCharmCE2018.1\config\scratches\dorot")
+dot.render(r"dorot")
 chrome_path = 'C:/Users/burstain/AppData/Local/Google/Chrome/Application/chrome.exe --profile-directory="Profile 1" %s'
-webbrowser.get(chrome_path).open(r'c:\Users\burstain\.PyCharmCE2018.1\config\scratches\dorot.svg')
+chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s'
+dorot = os.path.join(os.path.dirname(__file__),"dorot.svg")
+webbrowser.get(chrome_path).open(dorot)
