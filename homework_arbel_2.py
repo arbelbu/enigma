@@ -1,6 +1,7 @@
 from graphviz import Digraph, Graph
 import webbrowser
 import os
+import urllib.parse
 dot = Graph(format='svg')
 dot.attr(ranksep="1.6")#, , ranksep="20")  pad="24.5"nodesep="10"
 names_of_characters = open(r'names_of_characters.txt', 'r', encoding="utf-8")
@@ -10,12 +11,15 @@ list_of_names = names_of_characters.read().split("\n")
 
 def add_person(graph, number):
     name, tooltip = get_tooltip(number)
-    graph.node(str(number), name, tooltip=tooltip, fillcolor="beige", style="filled", shape="rectangle" )
+    wikipedia = "https://he.wikipedia.org/w/index.php?search="
+    name_url = urllib.parse.quote(name)
+    href = wikipedia + name_url
+    # "https://he.wikipedia.org/wiki/%D7%90%D7%91%D7%A8%D7%94%D7%9D"
+    graph.node(str(number), name, tooltip=tooltip, fillcolor="beige", style="filled", shape="rectangle", href=href)
 
 def chrome_hebrew(name):
     if "(" in name:
-        #import pdb;pdb.set_trace()
-        return name + u'\u200F'
+        return name + u'\u200F' # Right to left character
     return name
 
 def get_tooltip(number):
@@ -33,11 +37,11 @@ def get_diagram_husband_and_wife(husband, wife, source):
         point_name = str(husband) + "+" + str(wife)
         s.node(point_name, shape = 'point')
     with dot.subgraph() as s:
-        s.rankdir = "TB"
+        #s.rankdir = "TB"
         add_person(s, husband)
         add_person(s, wife)
         s.edge(str(husband),point_name, tooltip=source, fontname="Arial", fontcolor="blue", fontsize="10" , penwidth="2" , color = "green")
-        s.edge(point_name, str(wife), tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10"  , penwidth="2" ,color="green")
+        s.edge( str(wife),point_name, tooltip=source , fontname="Arial" , fontcolor="blue" , fontsize="10"  , penwidth="2" ,color="green")
 
 def get_diagram_father_and_son(parentes, son, source):
     # parentes is string (E.g. "3" or "3+4")
